@@ -1,0 +1,18 @@
+
+
+
+
+
+Analysis Type:	PANTHER Overrepresentation Test (Released 20200407)
+Annotation Version and Release Date:	GO Ontology database  Released 2020-02-21
+Analyzed List:	upload_1 (Mus musculus)
+Reference List:	Mus musculus (all genes in database)
+Test Type:	FISHER
+Correction:	FDR
+GO biological process complete	Mus musculus - REFLIST (22265)	upload_1 (71)	upload_1 (expected)	upload_1 (over/under)	upload_1 (fold Enrichment)	upload_1 (raw P-value)	upload_1 (FDR)
+axis specification (GO:0009798)	90	5	.29	+	17.42	1.31E-05	4.13E-02
+gastrulation (GO:0007369)	147	8	.47	+	17.07	3.30E-08	5.21E-04
+transmembrane receptor protein serine/threonine kinase signaling pathway (GO:0007178)	183	7	.58	+	12.00	2.42E-06	1.91E-02
+anterior/posterior pattern specification (GO:0009952)	226	7	.72	+	9.71	9.26E-06	4.88E-02
+regulation of transmembrane receptor protein serine/threonine kinase signaling pathway (GO:0090092)	234	7	.75	+	9.38	1.15E-05	4.56E-02
+regionalization (GO:0003002)	353	8	1.13	+	7.11	1.89E-05	4.97E-02
