@@ -1,0 +1,187 @@
+---
+title: "converting to binary"
+output: html_notebook
+---
+#Using R 3.0 instead of 3.6 because goseq doesn't work with 3.6.
+
+#Need to turn rna-seq data into vector of measured genes and differentially expressed genes. With DE identified as 0 or 1, my current xlsx file has this as true or false, so I will be converting "true" to 1 and "false" to 0.
+
+#begin by loading usual libraries, specifically readxl is needed to open my data file.
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(tidyr)
+library(BiocManager)
+library(goseq)
+library(geneLenDataBase)
+```
+
+#after loading libraries I need to have R read my data
+
+```{r}
+dataset <- "filtered-OCT4-3-375-DE-cpm-edited-merge.xlsx"
+data.frame <- read_xlsx (dataset)
+data.frame
+```
+
+#for the case of my data which was generated using edgeR, the threshold value indicates statistically significant changes in expression between wildtype mice and OCT4-/- mice. This is the value i want to convert to 1 or 0. To do this I found the below code from dsliberty on stack overflow.
+
+```{r}
+data.frame$threshold [data.frame$threshold == "true"] <- 1
+data.frame$threshold [data.frame$threshold == "false"] <- 0
+data.frame$threshold <- as.integer(data.frame$threshold)
+data.frame
+```
+
+#success threshold is now a column of 1s and 0s. Now to move on to getting the values in a proper format for goseq to use, wishing myself luck.
+
+```{r}
+DEG <- subset(data.frame, threshold == 1,
+select=c (geneName))
+DEG
+```
+
+#I now have a list of genes that are differentially expressed in my oct4-/- embryos based on the threshold of 1. Now just need to pull out a list of all genes looked at.
+
+```{r}
+ALL <- subset(data.frame, select=c (geneName))
+ALL
+```
+
+```{r}
+class(DEG)
+DEG.vector <- c(DEG)
+ALL.vector<-c(ALL)
+DEG.vector
+ALL.vector
+```
+
+#vector with 1 or 0 for all, added row.name portion after failing pwf multiple times 
+
+```{r}
+gene.vector=as.integer(ALL.vector%in%DEG.vector)
+names(gene.vector)=row.names(ALL.vector%in%DEG.vector)
+table(gene.vector)
+```
+
+#find what the gemone id is for mm9
+
+```{r}
+supportedOrganisms()
+
+```
+
+#need to establish what genome and id is used in my data
+
+```{r}
+pwf=nullp(gene.vector,"mm9","knownGene")
+```
+
+#looking for duplicates to try and solve ^ issue
+
+```{r}
+duplicated(ALL.vector)
+```
+
+#found no duplicates in ALL or DEG. Next step try removing row.names from gene.vector to try solving problem
+
+```{r}
+rownames(gene.vector) <- c()
+gene.vector
+```
+
+#time to retry pwf...
+
+```{r}
+pwf=nullp(gene.vector, "mm10", "geneSymbol")
+```
+
+#I'll figure out how to bias.data manually I guess
+
+```{r}
+getlength(gene.vector, "mm9", "geneSymbol")
+```
+
+#no idea how to get length manually, going to bias with counts instead of length so need to make a vector with genes and counts
+
+```{r}
+
+```
+
+
+```{r}
+pwf.counts=nullp(gene.vector,bias.data=countbias)
+GO.counts=goseq(pwf.counts,"mm10","knownGene")
+```
+
+#Starting over from beginning, following goseq manual, select data.
+
+```{r}
+data <- subset(data.frame, select=c (2:6))
+data
+```
+
+#looking for any rows with missing data
+
+```{r}
+complete.cases(data)
+```
+
+#remove rows with missing data
+
+```{r}
+datacomplete <- data[complete.cases(data), ]
+datacomplete
+```
+
+#make vector of FDR 0.05 genes
+
+```{r}
+genes=as.integer(datacomplete[[5]]<.05)
+names(genes)=row.names(datacomplete[[1]])
+table(genes)
+
+```
+
+#looking for supported genomes
+
+```{r}
+supportedGenomes()
+```
+
+#supported geneids
+
+```{r}
+supportedGeneIDs()
+```
+
+```{r}
+pwf=nullp(genes,"mm9","knownGenes")
+
+```
+
+```{r}
+getlength(genes, "mm8", "knowngene")
+```
+
+```{r}
+write.table(DEG, file = "oct4nullDE_genelist_for_toppfun", append = FALSE, sep = "\t",
+            row.names = FALSE, col.names = TRUE)
+```
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
